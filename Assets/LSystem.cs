@@ -11,15 +11,30 @@ public class LSystem : MonoBehaviour
         public string Definition;
     }
 
-    public static List<Rules> RulesList = new List<Rules>();
-    public string axiom;
+    public List<Rules> RulesList = new List<Rules>();
+    public string axiomxd = "";
+    public string CurrentString = "";
     public void RunItteration()
+    {
+        if(axiomxd == null)
+        {
+            return;
+        }
+        if (CurrentString == "") CurrentString = axiomxd;
+    }
+
+    public void restoreAxoim()
     {
 
     }
 
-    public static void addRule()
+    public void addRule()
     {
         RulesList.Add(new Rules());
+    }
+
+    private void Update()
+    {
+        Debug.Log(CurrentString);
     }
 }

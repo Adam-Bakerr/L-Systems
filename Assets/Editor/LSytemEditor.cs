@@ -33,17 +33,60 @@ public class LSystemWindow : EditorWindow
     public LSystem Target;
 
     private static Vector2 scrollPos = Vector2.zero;
+    private string _AxiomInput;
+
+
+
+    //Define a style and function to create a horizontal seperator
+    // create your style
+    GUIStyle horizontalLine;
+
+    private void Awake()
+    {
+        // create your style
+        horizontalLine = new GUIStyle();
+        horizontalLine.normal.background = EditorGUIUtility.whiteTexture;
+        horizontalLine.margin = new RectOffset(0, 0, 4, 4);
+        horizontalLine.fixedHeight = 1;
+
+        
+    }
+
+    // utility method
+    void HorizontalLine(Color color,int width)
+    {
+        var c = GUI.color;
+        GUI.color = color;
+        horizontalLine.fixedHeight = width;
+        GUILayout.Box(GUIContent.none, horizontalLine);
+        GUI.color = c;
+    }
 
     void OnGUI()
     {
         
-        LSystem Target = Selection.gameObjects[0]?.GetComponent<LSystem>();
+        //List Rules
+        Target = Selection.gameObjects[0]?.GetComponent<LSystem>();
         SerializedObject SO = new SerializedObject(Target);
         SerializedProperty Rules = SO.FindProperty("RulesList");
 
         SO.Update();
         show(Rules);
         SO.ApplyModifiedProperties();
+
+        //Display Current String
+        GUILayout.Label(_AxiomInput);
+
+        //Program Controls
+        if(GUILayout.Button("Run Itteration"))
+        {
+            Target.RunItteration();
+        }
+        //Reset To Axiom
+        if (GUILayout.Button("Reset"))
+        {
+            Target.restoreAxoim();
+        }
 
     }
 
@@ -54,24 +97,28 @@ public class LSystemWindow : EditorWindow
     }
 
     //Used to show a list of elements
-    public static void show(SerializedProperty list)
+    public void show(SerializedProperty list)
     {
-        scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.Height(100));
 
+        HorizontalLine(Color.gray, 10);
+        scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.Height(90));
+
+
+        GUILayout.BeginHorizontal(GUILayout.MaxWidth(150));
         GUILayout.Label("Rules:");
-        if(GUILayout.Button("New Rule"))
+        if(GUILayout.Button("New Rule",GUILayout.Width(75)))
         {
             Target.addRule();
         }
+        GUILayout.EndHorizontal();
+
+
         GUILayout.BeginHorizontal("Rules",GUILayout.MaxWidth(Screen.width));
         for (int i = 0; i < list.arraySize; i++)
         {
 
             SerializedProperty Rule = list.GetArrayElementAtIndex(i);
-            if (EditorGUILayout.PropertyField(Rule, true))
-            {
-                
-            }
+            EditorGUILayout.PropertyField(Rule, true);
             if (GUILayout.Button("X",GUIStyle.none,GUILayout.Width(10)))
             {
                 Rule.DeleteCommand();
@@ -81,12 +128,11 @@ public class LSystemWindow : EditorWindow
             
         }
         EditorGUILayout.EndHorizontal();
-
         EditorGUILayout.EndScrollView();
-    }
-
-    void addElementToSerializedPropertyList<t>(t _itemToAdd)
-    {
+        HorizontalLine(Color.gray,10);
+        _AxiomInput = EditorGUILayout.TextArea("");
+        
+        HorizontalLine(Color.gray,10);
 
     }
 

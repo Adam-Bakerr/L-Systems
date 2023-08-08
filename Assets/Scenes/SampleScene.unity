@@ -246,8 +246,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3dd6ab268caba854bbecab6688b01e88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  RulesList: []
+  RulesList:
+  - Rule: A
+    Definition: ABA
+  - Rule: B
+    Definition: BBB
   axiom: 
+  CurrentString: 
 --- !u!4 &1790763306
 Transform:
   m_ObjectHideFlags: 0
