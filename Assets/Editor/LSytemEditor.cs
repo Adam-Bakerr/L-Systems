@@ -4,6 +4,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using System.Reflection;
 using UnityEditor;
+using UnityEditor.PackageManager.UI;
 
 [CustomEditor(typeof(LSystem)),CanEditMultipleObjects]
 public class LSytemEditor : Editor
@@ -13,8 +14,6 @@ public class LSytemEditor : Editor
     public override void OnInspectorGUI()
     {
         //base.OnInspectorGUI();
-
-
 
         if (editorWindow == null && GUILayout.Button("Open L-System Editor"))
         {
@@ -32,61 +31,63 @@ public class LSystemWindow : EditorWindow
 {
     public LSystem Target;
 
+    private static Vector2 mainScrollPos = Vector2.zero;
     private static Vector2 scrollPos = Vector2.zero;
-    private string _AxiomInput;
-
-
+    private static Vector2 scrollPosAxInput = Vector2.zero;
+    private static Vector2 scrollPosCurrentStringInput = Vector2.zero;
+    string fileName = "";
 
     //Define a style and function to create a horizontal seperator
     // create your style
     GUIStyle horizontalLine;
-
+    Color DefaultGuiColor;
+    Color DefaultGuiBackgroundColor;
+    //window dimensions
     private void Awake()
     {
+
+        //Identify Clicked object
+        Target = Selection.gameObjects[0]?.GetComponent<LSystem>();
+
         // create your style
         horizontalLine = new GUIStyle();
         horizontalLine.normal.background = EditorGUIUtility.whiteTexture;
         horizontalLine.margin = new RectOffset(0, 0, 4, 4);
         horizontalLine.fixedHeight = 1;
 
-        
+        if (Target.Data == null)
+        {
+            Target.Data = ScriptableObject.CreateInstance<LSystemData>();
+        }
+
     }
 
     // utility method
     void HorizontalLine(Color color,int width)
     {
-        var c = GUI.color;
         GUI.color = color;
         horizontalLine.fixedHeight = width;
         GUILayout.Box(GUIContent.none, horizontalLine);
-        GUI.color = c;
+        GUI.color = DefaultGuiColor;
     }
 
     void OnGUI()
     {
-        
-        //List Rules
-        Target = Selection.gameObjects[0]?.GetComponent<LSystem>();
-        SerializedObject SO = new SerializedObject(Target);
-        SerializedProperty Rules = SO.FindProperty("RulesList");
 
+        DefaultGuiColor = GUI.color;
+        DefaultGuiBackgroundColor = GUI.backgroundColor;
+        SerializedObject SO = new SerializedObject(Target.Data);
+        SerializedProperty Rules = SO.FindProperty("RulesList");
         SO.Update();
+        GUI.color = Color.black;
+        GUILayout.BeginArea(new Rect(30,30,position.width-60,position.height-60),GUI.skin.box);
+        GUI.color = DefaultGuiColor;
+        mainScrollPos = GUILayout.BeginScrollView(mainScrollPos);
         show(Rules);
+        GUILayout.EndScrollView();
+        GUILayout.EndArea();
         SO.ApplyModifiedProperties();
 
-        //Display Current String
-        GUILayout.Label(_AxiomInput);
-
-        //Program Controls
-        if(GUILayout.Button("Run Itteration"))
-        {
-            Target.RunItteration();
-        }
-        //Reset To Axiom
-        if (GUILayout.Button("Reset"))
-        {
-            Target.restoreAxoim();
-        }
 
     }
 
@@ -99,40 +100,92 @@ public class LSystemWindow : EditorWindow
     //Used to show a list of elements
     public void show(SerializedProperty list)
     {
-
-        HorizontalLine(Color.gray, 10);
-        scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.Height(90));
-
-
+        scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.Height(100));
         GUILayout.BeginHorizontal(GUILayout.MaxWidth(150));
-        GUILayout.Label("Rules:");
-        if(GUILayout.Button("New Rule",GUILayout.Width(75)))
+        //GUI.backgroundColor = new Color(50 ,50, 50);
+        GUILayout.Box("Rules:");
+        GUI.backgroundColor = Color.black;
+        if(GUILayout.Button("New Rule", GUI.skin.box, GUILayout.Width(75)))
         {
+            
             Target.addRule();
         }
+
+        GUI.backgroundColor = DefaultGuiBackgroundColor;
         GUILayout.EndHorizontal();
 
 
-        GUILayout.BeginHorizontal("Rules",GUILayout.MaxWidth(Screen.width));
+        GUILayout.BeginHorizontal("Rules",GUILayout.MaxWidth(position.width));
         for (int i = 0; i < list.arraySize; i++)
         {
 
             SerializedProperty Rule = list.GetArrayElementAtIndex(i);
             EditorGUILayout.PropertyField(Rule, true);
-            if (GUILayout.Button("X",GUIStyle.none,GUILayout.Width(10)))
+            if (GUILayout.Button("X", GUI.skin.box, GUILayout.Width(20)))
             {
                 Rule.DeleteCommand();
             }
 
-
-            
         }
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.EndScrollView();
-        HorizontalLine(Color.gray,10);
-        _AxiomInput = EditorGUILayout.TextArea("");
-        
-        HorizontalLine(Color.gray,10);
+        HorizontalLine(Color.grey, 5);
+        scrollPosAxInput = EditorGUILayout.BeginScrollView(scrollPosAxInput, GUILayout.Height(30));
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.Box("Axiom:");
+        Target.Data.axiom = EditorGUILayout.TextArea(Target.Data.axiom, GUI.skin.textField, new GUILayoutOption[] { GUILayout.Height(25) });
+        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.EndScrollView();
+        GUILayout.Box("Branching Operators:");
+        GUILayout.BeginHorizontal();
+        GUILayout.Box("Opening",new GUILayoutOption[]{ GUILayout.Width(60) , GUILayout.Height(20) });
+        Target.Data.openBranch = EditorGUILayout.TextArea(Target.Data.openBranch, GUI.skin.textField , new GUILayoutOption[]{ GUILayout.Height(25) , GUILayout.Width(25)});
+        GUILayout.Box("Closing");
+        Target.Data.closeBranch = EditorGUILayout.TextArea(Target.Data.closeBranch,GUI.skin.textField, new GUILayoutOption[] { GUILayout.Height(25), GUILayout.Width(25) });
+        GUILayout.EndHorizontal();
+        HorizontalLine(Color.grey,5);
+
+        //Display Current String
+        scrollPosCurrentStringInput = GUILayout.BeginScrollView(scrollPosCurrentStringInput,new GUILayoutOption[]{ GUILayout.Height(50) , GUILayout.Width(position.width - 75) });
+        GUI.backgroundColor = Color.black *.8f;
+        GUILayout.Box(Target.CurrentString, GUILayout.Width(position.width - 105));
+        GUI.backgroundColor = DefaultGuiBackgroundColor;
+        GUILayout.EndScrollView();
+
+        //Program Controls
+        if (GUILayout.Button("Run Itteration", GUI.skin.box))
+        {
+            Target.RunItteration();
+        }
+
+        //Reset To Axiom
+        if (GUILayout.Button("Reset", GUI.skin.box))
+        {
+            Target.restoreAxoim();
+        }
+
+        HorizontalLine(Color.grey, 5);
+        //Save
+        GUILayout.BeginHorizontal();
+        if(fileName == "") GUI.enabled = false;
+        if (GUILayout.Button("Save", GUI.skin.box, GUILayout.Width(180)))
+        {
+            Target.Data.Save(fileName);
+        }
+        GUI.enabled = true;
+        fileName = GUILayout.TextArea(fileName, GUILayout.Height(20));
+        GUILayout.EndHorizontal();
+
+        //Load
+        GUILayout.BeginHorizontal();
+        if (fileName == "") GUI.enabled = false;
+        if (GUILayout.Button("Load", GUI.skin.box, GUILayout.Width(180)))
+        {
+            Target.Data.Load(fileName);
+        }
+        GUI.enabled = true;
+        fileName = GUILayout.TextArea(fileName,GUILayout.Height(20));
+        GUILayout.EndHorizontal();
 
     }
 
