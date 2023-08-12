@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Events;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.PackageManager.UI;
@@ -43,6 +44,10 @@ public class LSystemWindow : EditorWindow
     Color DefaultGuiColor;
     Color DefaultGuiBackgroundColor;
     //window dimensions
+
+    [SerializeField]
+    UnityEvent[] events;
+
     private void Awake()
     {
 
@@ -186,6 +191,20 @@ public class LSystemWindow : EditorWindow
         GUI.enabled = true;
         fileName = GUILayout.TextArea(fileName,GUILayout.Height(20));
         GUILayout.EndHorizontal();
+
+        events = new UnityEvent[Target.RuleDict.Count];
+
+        GUILayout.BeginHorizontal("Evaluation Definitions", GUILayout.MaxWidth(position.width));
+
+        SerializedObject serializedObject = new SerializedObject(this);
+        SerializedProperty sp = serializedObject.FindProperty("events");
+        for (int i = 0; i < Target.RuleDict.Count; i++)
+        {
+            events[i] = new UnityEvent();
+            SerializedProperty Rule = sp.GetArrayElementAtIndex(i);
+            EditorGUILayout.PropertyField(Rule, true);
+        }
+        EditorGUILayout.EndHorizontal();
 
     }
 

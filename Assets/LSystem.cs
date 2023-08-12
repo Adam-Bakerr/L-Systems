@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
-
+using UnityEngine.Events;
 public class LSystem : MonoBehaviour
 {
     [System.Serializable]
@@ -18,7 +18,7 @@ public class LSystem : MonoBehaviour
     public LSystemData Data;
 
     public string CurrentString = "";
-
+    public Dictionary<string, string> RuleDict = new Dictionary<string, string>();
 
     public void RunItteration()
     {
@@ -39,18 +39,18 @@ public class LSystem : MonoBehaviour
         StringBuilder sb = new StringBuilder();
 
 
-        Dictionary<string, string> Rules = new Dictionary<string, string>();
+        RuleDict = new Dictionary<string, string>();
 
         //Add all rules to a dict for faster searching
         foreach (var Rule in Data.RulesList)
         {
-            Rules.Add(Rule.Rule,Rule.Definition);
+            RuleDict.Add(Rule.Rule,Rule.Definition);
         }
 
 
         for (int i = 0; i < output.Length ; i++)
         {
-            Rules.TryGetValue(output[i], out output[i]);
+            RuleDict.TryGetValue(output[i], out output[i]);
             CurrentString += output[i];
         }
 
@@ -70,5 +70,14 @@ public class LSystem : MonoBehaviour
     private void Update()
     {
         Debug.Log(CurrentString);
+    }
+}
+
+
+class Evaluator : MonoBehaviour
+{
+    public static void Evaulate<t>(string InputString)
+    {
+    
     }
 }
