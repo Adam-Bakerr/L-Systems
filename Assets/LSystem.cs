@@ -20,6 +20,23 @@ public class LSystem : MonoBehaviour
     public string CurrentString = "";
     public Dictionary<string, string> RuleDict = new Dictionary<string, string>();
 
+    public List<char> allChars = new List<char>();
+
+    //Evaluation structures
+
+    [System.Serializable]
+    public struct charEventPair
+    {
+        public UnityEvent Event;
+        public char Char;
+        public charEventPair(char @char) : this()
+        {
+            Char = @char;
+        }
+    }
+
+    [SerializeField] public List<charEventPair> evalEvents = new List<charEventPair>();
+
     public void RunItteration()
     {
         if (Data == null)
@@ -50,7 +67,16 @@ public class LSystem : MonoBehaviour
 
         for (int i = 0; i < output.Length ; i++)
         {
+            //Any any new unique char to list of characters
+            if (!allChars.Contains(char.Parse(output[i]))) {
+                allChars.Add(char.Parse(output[i]));
+                evalEvents.Add(new charEventPair(char.Parse(output[i])));
+                    }
+
+            //Attempt to replace any rule with a definition
             RuleDict.TryGetValue(output[i], out output[i]);
+
+            //Appened it to the output string
             CurrentString += output[i];
         }
 
@@ -60,6 +86,9 @@ public class LSystem : MonoBehaviour
     public void restoreAxoim()
     {
         CurrentString = "";
+        allChars.Clear();
+        evalEvents.Clear();
+        Data.axiom = "";
     }
 
     public void addRule()
@@ -67,17 +96,29 @@ public class LSystem : MonoBehaviour
         Data.RulesList.Add(new Rules());
     }
 
-    private void Update()
+    public void evaluate()
     {
-        Debug.Log(CurrentString);
+        Dictionary<char, UnityEvent> chareventDict = new Dictionary<char, UnityEvent>();
+
+        foreach(charEventPair _eventPair in evalEvents)
+        {
+            chareventDict.Add(_eventPair.Char,_eventPair.Event);
+        }
+
+        foreach(char c in CurrentString)
+        {
+            chareventDict[c]?.Invoke();
+            
+
+            
+        }
+    }
+
+
+    public void print(string test)
+    {
+        Debug.Log(test);
     }
 }
 
 
-class Evaluator : MonoBehaviour
-{
-    public static void Evaulate<t>(string InputString)
-    {
-    
-    }
-}

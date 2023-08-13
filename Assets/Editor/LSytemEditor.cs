@@ -14,12 +14,15 @@ public class LSytemEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        //base.OnInspectorGUI();
+        base.OnInspectorGUI();
+
+        LSystem lSystem = (LSystem)target;
 
         if (editorWindow == null && GUILayout.Button("Open L-System Editor"))
         {
             editorWindow = EditorWindow.CreateWindow<LSystemWindow>("L-System Editor",
                 new[] { System.Type.GetType("UnityEditor.ConsoleWindow, UnityEditor.dll") });
+
         }
 
 
@@ -46,7 +49,7 @@ public class LSystemWindow : EditorWindow
     //window dimensions
 
     [SerializeField]
-    UnityEvent[] events;
+    List<UnityEvent> events;
 
     private void Awake()
     {
@@ -65,6 +68,17 @@ public class LSystemWindow : EditorWindow
             Target.Data = ScriptableObject.CreateInstance<LSystemData>();
         }
 
+
+    }
+
+    private void OnValidate()
+    {
+        Target.RuleDict = new Dictionary<string, string>();
+        //Add all rules to a dict that are loaded from a save
+        foreach (var Rule in Target.Data.RulesList)
+        {
+            Target.RuleDict.Add(Rule.Rule, Rule.Definition);
+        }
     }
 
     // utility method
@@ -78,7 +92,7 @@ public class LSystemWindow : EditorWindow
 
     void OnGUI()
     {
-
+     
         DefaultGuiColor = GUI.color;
         DefaultGuiBackgroundColor = GUI.backgroundColor;
         SerializedObject SO = new SerializedObject(Target.Data);
@@ -138,7 +152,25 @@ public class LSystemWindow : EditorWindow
         scrollPosAxInput = EditorGUILayout.BeginScrollView(scrollPosAxInput, GUILayout.Height(30));
         EditorGUILayout.BeginHorizontal();
         GUILayout.Box("Axiom:");
+
+        //Listen for changed text
+        EditorGUI.BeginChangeCheck();
         Target.Data.axiom = EditorGUILayout.TextArea(Target.Data.axiom, GUI.skin.textField, new GUILayoutOption[] { GUILayout.Height(25) });
+        if (EditorGUI.EndChangeCheck())
+        {
+            //Reset current string
+            Target.CurrentString = "";
+
+            //Add all unique chars to character set
+            for (int i = 0; i < Target.Data.axiom.Length; i++)
+            {
+                if (!Target.allChars.Contains(Target.Data.axiom[i]))
+                {
+                    Target.allChars.Add(Target.Data.axiom[i]);
+                    Target.evalEvents.Add(new LSystem.charEventPair(Target.Data.axiom[i]));
+                }
+            }
+        }
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.EndScrollView();
         GUILayout.Box("Branching Operators:");
@@ -161,6 +193,12 @@ public class LSystemWindow : EditorWindow
         if (GUILayout.Button("Run Itteration", GUI.skin.box))
         {
             Target.RunItteration();
+        }
+
+        //Run Custom Evaluation on current string
+        if (GUILayout.Button("Evalualte", GUI.skin.box))
+        {
+            Target.evaluate();
         }
 
         //Reset To Axiom
@@ -191,21 +229,6 @@ public class LSystemWindow : EditorWindow
         GUI.enabled = true;
         fileName = GUILayout.TextArea(fileName,GUILayout.Height(20));
         GUILayout.EndHorizontal();
-
-        events = new UnityEvent[Target.RuleDict.Count];
-
-        GUILayout.BeginHorizontal("Evaluation Definitions", GUILayout.MaxWidth(position.width));
-
-        SerializedObject serializedObject = new SerializedObject(this);
-        SerializedProperty sp = serializedObject.FindProperty("events");
-        for (int i = 0; i < Target.RuleDict.Count; i++)
-        {
-            events[i] = new UnityEvent();
-            SerializedProperty Rule = sp.GetArrayElementAtIndex(i);
-            EditorGUILayout.PropertyField(Rule, true);
-        }
-        EditorGUILayout.EndHorizontal();
-
     }
 
     //Save data on closing the gui
