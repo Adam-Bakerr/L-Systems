@@ -10,6 +10,8 @@ public class LSYSMAIN : MonoBehaviour
 
     [SerializeField]
     public SerializableDict<char, string> rules = new SerializableDict<char, string>();
+    int currentRuleLength = 0;
+
 
     [SerializeField]
     public SerializableDict<char, UnityEvent> Expressions = new SerializableDict<char, UnityEvent>();
@@ -26,8 +28,6 @@ public class LSYSMAIN : MonoBehaviour
     
     private void Start()
     {
-        rules.Add('a',"aba");
-        rules.Add('b', "bbb");
         data = new LSYS.Data(rules, CurrentString,OpenBranch, ClosingBranch);
         UpdateExpressions();
     }
@@ -35,6 +35,13 @@ public class LSYSMAIN : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(rules.ValuesCount() != currentRuleLength)
+        {
+            UpdateRules();
+            currentRuleLength = rules.ValuesCount();
+        }
+
+
         if (Itterate)
         {
             
@@ -55,11 +62,50 @@ public class LSYSMAIN : MonoBehaviour
     //Used to add new unity events for each character present in string
     void UpdateExpressions()
     {
+        //Add any values added in inspector due to how serialized dict works
+        foreach(var pair in Expressions.values)
+        {
+            if (!Expressions.Contains(pair.Key))
+            {
+                Expressions.AddContents(pair);
+            }
+        }
+
+
+
         foreach (char c in data.Characters)
         {
+            //Skip Intergers
+            if (int.TryParse(c.ToString(), out int result)) continue;
+            
             if (!Expressions.Contains(c))
             {
                 Expressions.Add(c, new UnityEvent());
+            }
+        }
+
+
+        
+
+        //Add Branching Opperators
+        if (!Expressions.Contains('['))
+        {
+            Expressions.Add('[', new UnityEvent());
+        }
+        if (!Expressions.Contains(']'))
+        {
+            Expressions.Add(']', new UnityEvent());
+        }
+    }
+
+
+    public void UpdateRules()
+    {
+        foreach(var rule in rules.values)
+        {
+            if (!data.Rules.Contains(rule.Key))
+            {
+                data.Rules.AddContents(rule);
             }
         }
     }

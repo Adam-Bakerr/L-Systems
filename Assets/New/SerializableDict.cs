@@ -19,6 +19,7 @@ public class SerializableDict<T,U>
         }
     }
 
+    
 
     [SerializeField] public List<SerializablKeyValuePair> values = new List<SerializablKeyValuePair>();
     Dictionary<T, U> Contents = new Dictionary<T, U>();
@@ -44,11 +45,30 @@ public class SerializableDict<T,U>
         return false;
     }
 
+    public bool ContainsPair(SerializablKeyValuePair pair)
+    {
+        if (Contents.ContainsKey(pair.Key) && Contents.ContainsValue(pair.Value))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public void AddContents(SerializablKeyValuePair pair)
+    {
+        Contents.Add(pair.Key,pair.Value);
+    }
+
     public int Count()
     {
         return Contents.Count;
     }
-    
+
+    public int ValuesCount()
+    {
+        return values.Count;
+    }
+
     //Avoid Using
     public Dictionary<T,U> ExposeDict()
     {
