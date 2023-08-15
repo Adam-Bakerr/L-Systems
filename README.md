@@ -15,3 +15,8 @@ The system is being used to demonstrate the ability to generate self similar pat
 - Editable ruleset
 - Editable axiom
 - Editable Functions Calls Through The Inspector
+
+## Screenshots
+![ScreenShot](https://github.com/Adam-Bakerr/L-Systems/blob/main/Screenshots/Fractal1.png?raw=true)
+![ScreenShot]()
+![ScreenShot]()
