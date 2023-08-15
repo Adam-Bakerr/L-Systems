@@ -18,5 +18,5 @@ The system is being used to demonstrate the ability to generate self similar pat
 
 ## Screenshots
 ![ScreenShot](https://github.com/Adam-Bakerr/L-Systems/blob/main/Screenshots/Fractal1.png?raw=true)
-![ScreenShot]()
-![ScreenShot]()
+![ScreenShot](https://github.com/Adam-Bakerr/L-Systems/blob/main/Screenshots/Fractal2.png?raw=true)
+![ScreenShot](https://github.com/Adam-Bakerr/L-Systems/blob/main/Screenshots/Fractal3.png?raw=true)
